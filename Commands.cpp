@@ -1,12 +1,9 @@
-#include <iostream>
-#include <vector>
 #include <sstream>
 #include <sys/wait.h>
 #include <iomanip>
 #include "Commands.h"
 #include <time.h>
 #include <utime.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <sys/types.h>
@@ -84,11 +81,7 @@ void _removeBackgroundSign(char* cmd_line) {
   cmd_line[str.find_last_not_of(WHITESPACE, idx) + 1] = 0;
 }
 
-// TODO: Add your implementation for classes in Commands.h 
-
-SmallShell::SmallShell() {
-// TODO: add your implementation
-}
+// TODO: Add your implementation for classes in Commands.h
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
@@ -125,7 +118,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     int pos=0;
     cmd_s.erase(0, index+1);
     cmd_s = _trim(cmd_s);
-    while ((pos=cmd_s.find(space)) != string::npos){
+    while ((pos=cmd_s.find(space)) != (int)string::npos){
         parameters.push_back(cmd_s.substr(0, pos));
         cmd_s.erase(0, pos+1);
         cmd_s = _trim(cmd_s);
@@ -136,7 +129,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     }
 
     if (firstWord.compare("pwd")==0){
-        return new GetCurrDirCommand(cmd_line);c
+        return new GetCurrDirCommand(cmd_line);
     }
 
   return nullptr;
@@ -160,26 +153,28 @@ void SmallShell::executeCommand(const char *cmd_line) {
     cmd_s.erase(0, index+1);
     cmd_s = _trim(cmd_s);
 
-    while ((pos=cmd_s.find(space)) != string::npos){
+    while ((pos=cmd_s.find(space)) != (int)string::npos){
         parameters.push_back(cmd_s.substr(0, pos));
         cmd_s.erase(0, pos+1);
         cmd_s = _trim(cmd_s);
     }
 
-    if (firstWord.compare("chprompt") == 0) {
+    if (firstWord == "chprompt") {
         if (!parameters.empty())
             setPromptMsg(parameters[0]);
     }
     else {
         Command* cmd = CreateCommand(cmd_line);
-        cmd->execute();
+        if (cmd) {
+            cmd->execute();
+        }
     }
 }
 
 SmallShell::SmallShell() :prompt_msg("smash>"){
 }
 
-void SmallShell::setPromptMsg(char* new_message){
+void SmallShell::setPromptMsg(string new_message){
     this->prompt_msg=new_message;
 }
 
@@ -187,12 +182,20 @@ std::string SmallShell::getPromptMsg(){
     return this->prompt_msg;
 }
 
-void ShowPidCommand::execute() override{
+void ShowPidCommand::execute(){
     //todo: check in linux if it works
     std::cout << "smash pid is "<<getpid() <<"\n";
 }
 
-void GetCurrDirCommand::execute() override{
-    //todo: check in linux if it works
-    std::cout << <<getcwd() <<"\n";
+ShowPidCommand::ShowPidCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
+
+void GetCurrDirCommand::execute(){
+    //todo: check what others did with buffer size
+    char buffer [10000];
+    getcwd(buffer, sizeof(buffer));
+    std::cout << buffer <<"\n";
+}
+
+GetCurrDirCommand::GetCurrDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {
+
 }

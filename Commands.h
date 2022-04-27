@@ -16,9 +16,10 @@ typedef enum {
 
 class Command {
 // TODO: Add your data members
+    const char* cmd;
  public:
-  Command(const char* cmd_line);
-  virtual ~Command();
+  Command(const char* cmd_line) : cmd(cmd_line){};
+  virtual ~Command() = default;
   virtual void execute() = 0;
   //virtual void prepare();
   //virtual void cleanup();
@@ -27,14 +28,14 @@ class Command {
 
 class BuiltInCommand : public Command {
  public:
-  BuiltInCommand(const char* cmd_line);
-  virtual ~BuiltInCommand() {}
+  BuiltInCommand(const char* cmd_line): Command(cmd_line){};
+  virtual ~BuiltInCommand() = default;
 };
 
 class ExternalCommand : public Command {
  public:
-  ExternalCommand(const char* cmd_line);
-  virtual ~ExternalCommand() {}
+  ExternalCommand(const char* cmd_line) : Command(cmd_line) {};
+  virtual ~ExternalCommand() = default;
   void execute() override;
 };
 
@@ -65,7 +66,7 @@ class ChangeDirCommand : public BuiltInCommand {
 
 class GetCurrDirCommand : public BuiltInCommand {
  public:
-  GetCurrDirCommand(const char* cmd_line);
+  explicit GetCurrDirCommand(const char* cmd_line);
   virtual ~GetCurrDirCommand() {}
   void execute() override;
 };
@@ -97,7 +98,7 @@ class JobsList {
    int pid;
    Status state;
    time_t entry_time;
-   std::string command
+   std::string command;
 
   };
  // TODO: Add your data members
@@ -168,7 +169,7 @@ class SmallShell {
     std::string prompt_msg;
   SmallShell();
  public:
-  void setPromptMsg(char* new_message);
+  void setPromptMsg(std::string new_message);
   std::string getPromptMsg();
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor

@@ -5,8 +5,14 @@
 #include <iostream>
 #include <string.h>
 
+
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
+
+typedef enum {
+    STOPPED = 0,
+    BACKGROUND = 1
+} Status;
 
 class Command {
 // TODO: Add your data members
@@ -71,6 +77,8 @@ class ShowPidCommand : public BuiltInCommand {
   void execute() override;
 };
 
+
+
 class JobsList;
 class QuitCommand : public BuiltInCommand {
 // TODO: Add your data members public:
@@ -85,7 +93,12 @@ class QuitCommand : public BuiltInCommand {
 class JobsList {
  public:
   class JobEntry {
-   // TODO: Add your data members
+   int jobID;
+   int pid;
+   Status state;
+   time_t entry_time;
+   std::string command
+
   };
  // TODO: Add your data members
  public:

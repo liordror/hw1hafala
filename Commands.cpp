@@ -9,6 +9,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <stdio.h>
+
+
 
 using namespace std;
 
@@ -112,7 +116,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   }
   */
     string cmd_s = _trim(string(cmd_line));
-  6  int index = cmd_s.find_first_of(" \n");
+    int index = cmd_s.find_first_of(" \n");
     string firstWord = cmd_s.substr(0, index);
     string secondWord;
 
@@ -127,10 +131,14 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
         cmd_s = _trim(cmd_s);
     }
 
-    if (firstWord.compare("chprompt") == 0) {
-        if (!parameters.empty())
-            setPromptMsg(parameters[0]);
+    if (firstWord.compare("showpid") == 0) {
+        return new ShowPidCommand(cmd_line);
     }
+
+    if (firstWord.compare("pwd")==0){
+        return new GetCurrDirCommand(cmd_line);c
+    }
+
   return nullptr;
 }
 
@@ -140,6 +148,32 @@ void SmallShell::executeCommand(const char *cmd_line) {
   // Command* cmd = CreateCommand(cmd_line);
   // cmd->execute();
   // Please note that you must fork smash process for some commands (e.g., external commands....)
+
+    string cmd_s = _trim(string(cmd_line));
+    int index = cmd_s.find_first_of(" \n");
+    string firstWord = cmd_s.substr(0, index);
+    string secondWord;
+
+    string space = " ";
+    vector<string> parameters{};
+    int pos=0;
+    cmd_s.erase(0, index+1);
+    cmd_s = _trim(cmd_s);
+
+    while ((pos=cmd_s.find(space)) != string::npos){
+        parameters.push_back(cmd_s.substr(0, pos));
+        cmd_s.erase(0, pos+1);
+        cmd_s = _trim(cmd_s);
+    }
+
+    if (firstWord.compare("chprompt") == 0) {
+        if (!parameters.empty())
+            setPromptMsg(parameters[0]);
+    }
+    else {
+        Command* cmd = CreateCommand(cmd_line);
+        cmd->execute();
+    }
 }
 
 SmallShell::SmallShell() :prompt_msg("smash>"){
@@ -151,4 +185,14 @@ void SmallShell::setPromptMsg(char* new_message){
 
 std::string SmallShell::getPromptMsg(){
     return this->prompt_msg;
+}
+
+void ShowPidCommand::execute() override{
+    //todo: check in linux if it works
+    std::cout << "smash pid is "<<getpid() <<"\n";
+}
+
+void GetCurrDirCommand::execute() override{
+    //todo: check in linux if it works
+    std::cout << <<getcwd() <<"\n";
 }

@@ -1,3 +1,4 @@
 *.o
 smash
 .idea/
+cmake-build-debug/

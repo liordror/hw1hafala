@@ -43,17 +43,13 @@ string _trim(const std::string& s)
   return _rtrim(_ltrim(s));
 }
 
-int _parseCommandLine(const char* cmd_line, char** args) {
+vector<string> _parseCommandLine(const char* cmd_line) {
   FUNC_ENTRY()
-  int i = 0;
-  std::istringstream iss(_trim(string(cmd_line)).c_str());
-  for(std::string s; iss >> s; ) {
-    args[i] = (char*)malloc(s.length()+1);
-    memset(args[i], 0, s.length()+1);
-    strcpy(args[i], s.c_str());
-    args[++i] = NULL;
-  }
-  return i;
+  vector<string> args;
+  std::istringstream iss(_trim(string(cmd_line)));
+  for(std::string s; iss >> s; )
+      args.push_back(s);
+  return args;
 
   FUNC_EXIT()
 }
@@ -90,7 +86,7 @@ SmallShell::~SmallShell() {
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
-Command * SmallShell::CreateCommand(const char* cmd_line) {
+Command * SmallShell::CreateCommand(const char *cmd_line, const std::vector<std::string> &args) {
 	// For example:
 /*
   string cmd_s = _trim(string(cmd_line));
@@ -108,27 +104,27 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new ExternalCommand(cmd_line);
   }
   */
-    string cmd_s = _trim(string(cmd_line));
-    int index = cmd_s.find_first_of(" \n");
-    string firstWord = cmd_s.substr(0, index);
-    string secondWord;
+//    string cmd_s = _trim(string(cmd_line));
+//    int index = cmd_s.find_first_of(" \n");
+//    string firstWord = cmd_s.substr(0, index);
+//    string secondWord;
+//
+//    string space = " ";
+//    vector<string> parameters{};
+//    int pos=0;
+//    cmd_s.erase(0, index+1);
+//    cmd_s = _trim(cmd_s);
+//    while ((pos=cmd_s.find(space)) != (int)string::npos){
+//        parameters.push_back(cmd_s.substr(0, pos));
+//        cmd_s.erase(0, pos+1);
+//        cmd_s = _trim(cmd_s);
+//    }
 
-    string space = " ";
-    vector<string> parameters{};
-    int pos=0;
-    cmd_s.erase(0, index+1);
-    cmd_s = _trim(cmd_s);
-    while ((pos=cmd_s.find(space)) != (int)string::npos){
-        parameters.push_back(cmd_s.substr(0, pos));
-        cmd_s.erase(0, pos+1);
-        cmd_s = _trim(cmd_s);
-    }
-
-    if (firstWord.compare("showpid") == 0) {
+    if (args[0] == "showpid") {
         return new ShowPidCommand(cmd_line);
     }
 
-    if (firstWord.compare("pwd")==0){
+    if (args[0] == "pwd") {
         return new GetCurrDirCommand(cmd_line);
     }
 
@@ -136,38 +132,42 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 }
 
 void SmallShell::executeCommand(const char *cmd_line) {
-  // TODO: Add your implementation here
   // for example:
   // Command* cmd = CreateCommand(cmd_line);
   // cmd->execute();
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 
-    string cmd_s = _trim(string(cmd_line));
-    int index = cmd_s.find_first_of(" \n");
-    string firstWord = cmd_s.substr(0, index);
-    string secondWord;
+//    string cmd_s = _trim(string(cmd_line));
+//    int index = cmd_s.find_first_of(" \n");
+//    string firstWord = cmd_s.substr(0, index);
+//    string secondWord;
+//
+//    string space = " ";
+//    vector<string> parameters{};
+//    int pos=0;
+//    cmd_s.erase(0, index+1);
+//    cmd_s = _trim(cmd_s);
 
-    string space = " ";
-    vector<string> parameters{};
-    int pos=0;
-    cmd_s.erase(0, index+1);
-    cmd_s = _trim(cmd_s);
+//    while ((pos=cmd_s.find(space)) != (int)string::npos){
+//        parameters.push_back(cmd_s.substr(0, pos));
+//        cmd_s.erase(0, pos+1);
+//        cmd_s = _trim(cmd_s);
+//    }
+    vector<string> args = _parseCommandLine(cmd_line);
+    if (args.empty())
+        return;
 
-    while ((pos=cmd_s.find(space)) != (int)string::npos){
-        parameters.push_back(cmd_s.substr(0, pos));
-        cmd_s.erase(0, pos+1);
-        cmd_s = _trim(cmd_s);
-    }
-
-    if (firstWord == "chprompt") {
-        if (!parameters.empty())
-            setPromptMsg(parameters[0]);
-    }
-    else {
-        Command* cmd = CreateCommand(cmd_line);
+    if (args[0] == "chprompt") {
+        if (args.size() > 1)
+            setPromptMsg(args[1]);
+        else
+            setPromptMsg("smash");
+    } else {
+        Command* cmd = CreateCommand(cmd_line, args);
         if (cmd) {
             cmd->execute();
         }
+        delete cmd;
     }
 }
 
@@ -175,7 +175,7 @@ SmallShell::SmallShell() :prompt_msg("smash>"){
 }
 
 void SmallShell::setPromptMsg(string new_message){
-    this->prompt_msg=new_message;
+    this->prompt_msg=new_message + ">";
 }
 
 std::string SmallShell::getPromptMsg(){
@@ -184,16 +184,17 @@ std::string SmallShell::getPromptMsg(){
 
 void ShowPidCommand::execute(){
     //todo: check in linux if it works
-    std::cout << "smash pid is "<<getpid() <<"\n";
+    std::cout << "smash pid is "<<getpid() << endl;
 }
 
 ShowPidCommand::ShowPidCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {}
 
 void GetCurrDirCommand::execute(){
-    //todo: check what others did with buffer size
-    char buffer [10000];
-    getcwd(buffer, sizeof(buffer));
-    std::cout << buffer <<"\n";
+    char* path = getcwd(nullptr, 0);
+    if (path == nullptr) {
+        //TODO ERROR HANDLING
+    }
+    std::cout << path << endl;
 }
 
 GetCurrDirCommand::GetCurrDirCommand(const char *cmd_line) : BuiltInCommand(cmd_line) {

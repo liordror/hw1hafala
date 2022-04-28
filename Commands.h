@@ -171,7 +171,7 @@ class SmallShell {
  public:
   void setPromptMsg(std::string new_message);
   std::string getPromptMsg();
-  Command *CreateCommand(const char* cmd_line);
+  Command *CreateCommand(const char *cmd_line, const std::vector<std::string> &args);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
   void operator=(SmallShell const&)  = delete; // disable = operator
   static SmallShell& getInstance() // make SmallShell singleton
